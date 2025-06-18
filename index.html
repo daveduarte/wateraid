@@ -30,7 +30,6 @@
         .kpi-card h3 {
             line-height: 1.2;
         }
-        /* Spinner styles for loading states */
         .loading-spinner {
             border: 4px solid rgba(255,255,255,.3);
             border-top: 4px solid #F7A823;
@@ -123,7 +122,7 @@
                         </div>
                         <div class="flex items-center">
                             <div class="flex-shrink-0 bg-[#73BF43] h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-xl">3</div>
-                            <div class="ml-4">
+                            <p class="ml-4">
                                 <h4 class="text-lg font-semibold">Community Empowerment</h4>
                                 <p class="text-gray-600">Ensuring local communities, especially women, lead the design and management of WASH solutions.</p>
                             </p>
@@ -386,9 +385,9 @@
 
         // Gemini API Integration
         async function callGeminiAPI(prompt, outputElement, errorElement, loadingElement, isStructured = false) {
-            outputElement.innerHTML = ''; // Clear previous content
-            errorElement.classList.add('hidden'); // Hide any previous error
-            loadingElement.classList.remove('hidden'); // Show loading spinner
+            outputElement.innerHTML = '';
+            errorElement.classList.add('hidden');
+            loadingElement.classList.remove('hidden');
 
             if (isStructured) {
                 outputElement.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
@@ -413,11 +412,10 @@
                     };
                 }
 
-                // IMPORTANT: Replace the empty string below with your actual Gemini API key.
-                // Example: const apiKey = "AIzaSy_YOUR_ACTUAL_API_KEY_HERE";
-                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg";
-                console.log("Using API Key (first few chars):", apiKey.substring(0, 5) + "..."); // For debugging
-
+                // IMPORTANT: PASTE YOUR ACTUAL GEMINI API KEY HERE.
+                // Example: const apiKey = "AIzaSy_YOUR_ACTUAL_API_KEY_GOES_HERE";
+                const apiKey = "PASTE_YOUR_ACTUAL_GEMINI_API_KEY_HERE_CAREFULLY"; // <-- Update this line
+                
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -427,7 +425,6 @@
                 });
 
                 const result = await response.json();
-                console.log("Gemini API Response:", result); // Log the full response
 
                 if (result.candidates && result.candidates.length > 0 &&
                     result.candidates[0].content && result.candidates[0].content.parts &&
@@ -455,7 +452,6 @@
                         outputElement.textContent = text;
                     }
                 } else {
-                    // Check for specific error messages from the API
                     if (result.error && result.error.message) {
                         errorElement.textContent = `API Error: ${result.error.message}`;
                     } else {
@@ -468,7 +464,7 @@
                 errorElement.textContent = `Error: Failed to connect to AI. Please check your API key and network.`;
                 errorElement.classList.remove('hidden');
             } finally {
-                loadingElement.classList.add('hidden'); // Hide loading spinner
+                loadingElement.classList.add('hidden');
             }
         }
 
@@ -479,7 +475,8 @@
         const sloganLoading = document.getElementById('sloganLoading');
 
         generateSloganBtn.addEventListener('click', () => {
-            const prompt = "Generate a short, inspiring slogan for a campaign called 'Women for Water' that focuses on empowering women to improve water, sanitation, and hygiene in healthcare facilities. The slogan should be concise and impactful, suitable for an awareness campaign.";
+            // Changed prompt to explicitly ask for ONLY ONE slogan
+            const prompt = "Generate only one concise and impactful campaign slogan for a campaign called 'Women for Water' that focuses on empowering women to improve water, sanitation, and hygiene in healthcare facilities. The slogan should be suitable for an awareness campaign.";
             callGeminiAPI(prompt, sloganOutput, sloganError, sloganLoading, false);
         });
 

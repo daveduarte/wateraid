@@ -126,7 +126,7 @@
                             <div class="ml-4">
                                 <h4 class="text-lg font-semibold">Community Empowerment</h4>
                                 <p class="text-gray-600">Ensuring local communities, especially women, lead the design and management of WASH solutions.</p>
-                            </div>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -413,8 +413,11 @@
                     };
                 }
 
-                // IMPORTANT: Replace "YOUR_GEMINI_API_KEY" with your actual Gemini API key
-                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg"; // <--- INSERT YOUR GEMINI API KEY HERE FOR DEPLOYMENT
+                // IMPORTANT: Replace the empty string below with your actual Gemini API key.
+                // Example: const apiKey = "AIzaSy_YOUR_ACTUAL_API_KEY_HERE";
+                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg";
+                console.log("Using API Key (first few chars):", apiKey.substring(0, 5) + "..."); // For debugging
+
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -424,6 +427,7 @@
                 });
 
                 const result = await response.json();
+                console.log("Gemini API Response:", result); // Log the full response
 
                 if (result.candidates && result.candidates.length > 0 &&
                     result.candidates[0].content && result.candidates[0].content.parts &&
@@ -451,7 +455,12 @@
                         outputElement.textContent = text;
                     }
                 } else {
-                    errorElement.textContent = `Error: No content generated.`;
+                    // Check for specific error messages from the API
+                    if (result.error && result.error.message) {
+                        errorElement.textContent = `API Error: ${result.error.message}`;
+                    } else {
+                        errorElement.textContent = `Error: No content generated or unexpected response structure.`;
+                    }
                     errorElement.classList.remove('hidden');
                 }
             } catch (error) {

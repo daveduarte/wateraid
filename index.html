@@ -42,6 +42,25 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* New style for 3:4 aspect ratio box */
+        .aspect-ratio-3-4 {
+            position: relative;
+            width: 100%;
+            padding-bottom: 133.33%; /* 4 / 3 = 1.3333 */
+            overflow: hidden;
+        }
+        .aspect-ratio-3-4-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem; /* Adjust padding as needed */
+            text-align: center;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -176,106 +195,81 @@
             </div>
         </section>
 
-        <section id="llm-features" class="mb-16 md:mb-24 bg-white rounded-2xl shadow-lg p-8 md:p-12">
-            <div class="text-center mb-10">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Amplify the Message</h2>
-                <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Leverage AI to craft compelling campaign slogans and key advocacy points.</p>
+        <section id="local-insights-action" class="mb-16 md:mb-24 bg-white rounded-2xl shadow-lg p-8 md:p-12">
+            <div class="text-center mb-6">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Local WASH Insights & Action</h2>
+                <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Select a country to learn about its specific WASH challenges in maternal healthcare facilities and generate localized calls to action.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-between">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Craft a Slogan</h3>
-                    <button id="generateSloganBtn" class="bg-[#F7A823] text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition-colors duration-300 transform hover:scale-105 mb-4">
-                        Generate Slogan ✨
-                    </button>
-                    <div id="sloganLoading" class="hidden flex justify-center items-center mb-4">
-                        <div class="loading-spinner"></div>
-                        <span class="ml-3 text-gray-500">Generating...</span>
-                    </div>
-                    <p id="sloganOutput" class="text-xl italic text-center text-gray-700 min-h-[50px] flex items-center justify-center">Click the button to generate a slogan.</p>
-                    <p id="sloganError" class="text-red-500 mt-2 hidden text-center"></p>
-                </div>
-                <div class="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-between">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Advocacy Points</h3>
-                    <button id="generateAdvocacyBtn" class="bg-[#73BF43] text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300 transform hover:scale-105 mb-4">
-                        Get Advocacy Points ✨
-                    </button>
-                    <div id="advocacyLoading" class="hidden flex justify-center items-center mb-4">
-                        <div class="loading-spinner"></div>
-                        <span class="ml-3 text-gray-500">Generating...</span>
-                    </div>
-                    <ul id="advocacyOutput" class="text-base text-gray-700 list-disc list-inside space-y-2 min-h-[100px] flex flex-col justify-center">
-                        <li class="text-center">Click the button to get advocacy points.</li>
-                    </ul>
-                    <p id="advocacyError" class="text-red-500 mt-2 hidden text-center"></p>
-                </div>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+                <label for="countrySelect" class="sr-only">Select Country</label>
+                <select id="countrySelect" class="flex-grow md:w-1/2 p-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A9E0]">
+                    <option value="">Select a Country</option>
+                    <option value="Cambodia">Cambodia</option>
+                    <option value="Germany">Germany</option>
+                    <option value="Ghana">Ghana</option>
+                    <option value="Japan">Japan</option>
+                    <option value="Liberia">Liberia</option>
+                    <option value="Malawi">Malawi</option>
+                    <option value="Mali">Mali</option>
+                    <option value="Nepal">Nepal</option>
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Rwanda">Rwanda</option>
+                    <option value="Sweden">Sweden</option>
+                    <option value="Tanzania">Tanzania</option>
+                    <option value="Uganda">Uganda</option>
+                    <option value="UK">UK</option>
+                    <option value="USA">USA</option>
+                    <option value="Zambia">Zambia</option>
+                </select>
+                <button id="getCountryBriefingBtn" class="bg-[#00A9E0] text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-300 transform hover:scale-105">
+                    Get Country Briefing ✨
+                </button>
             </div>
-            
-            <div class="mt-12 pt-8 border-t border-gray-200">
-                <div class="text-center mb-6">
-                    <h3 class="text-3xl md:text-4xl font-bold text-gray-900">Local WASH Insights & Action</h3>
-                    <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Select a country to learn about its specific WASH challenges in maternal healthcare facilities and generate localized calls to action.</p>
-                </div>
-                <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
-                    <label for="countrySelect" class="sr-only">Select Country</label>
-                    <select id="countrySelect" class="flex-grow md:w-1/2 p-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00A9E0]">
-                        <option value="">Select a Country</option>
-                        <option value="Cambodia">Cambodia</option>
-                        <option value="Germany">Germany</option>
-                        <option value="Ghana">Ghana</option>
-                        <option value="Japan">Japan</option>
-                        <option value="Liberia">Liberia</option>
-                        <option value="Malawi">Malawi</option>
-                        <option value="Mali">Mali</option>
-                        <option value="Nepal">Nepal</option>
-                        <option value="Nigeria">Nigeria</option>
-                        <option value="Rwanda">Rwanda</option>
-                        <option value="Sweden">Sweden</option>
-                        <option value="Tanzania">Tanzania</option>
-                        <option value="Uganda">Uganda</option>
-                        <option value="UK">UK</option>
-                        <option value="USA">USA</option>
-                        <option value="Zambia">Zambia</option>
-                    </select>
-                    <button id="getCountryBriefingBtn" class="bg-[#00A9E0] text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-300 transform hover:scale-105">
-                        Get Country Briefing ✨
-                    </button>
-                </div>
-                <div id="countryBriefingLoading" class="hidden flex justify-center items-center mb-4">
-                    <div class="loading-spinner"></div>
-                    <span class="ml-3 text-gray-500">Fetching country briefing...</span>
-                </div>
-                <div id="countryBriefingOutput" class="bg-gray-100 p-6 rounded-lg shadow-inner text-gray-700 min-h-[70px] flex items-center justify-center text-center italic">
-                    Select a country and click "Get Country Briefing" for a quick overview.
-                </div>
-                <p id="countryBriefingError" class="text-red-500 mt-2 hidden text-center"></p>
+            <div id="countryBriefingLoading" class="hidden flex justify-center items-center mb-4">
+                <div class="loading-spinner"></div>
+                <span class="ml-3 text-gray-500">Fetching country briefing...</span>
+            </div>
+            <div id="countryBriefingOutput" class="bg-gray-100 p-6 rounded-lg shadow-inner text-gray-700 min-h-[70px] flex items-center justify-center text-center italic">
+                Select a country and click "Get Country Briefing" for a quick overview.
+            </div>
+            <p id="countryBriefingError" class="text-red-500 mt-2 hidden text-center"></p>
 
-                <!-- New Buttons for Localized Content -->
-                <div class="flex flex-col md:flex-row items-center justify-center gap-4 mt-8">
-                    <button id="getAdvocacyPointsLocalBtn" class="bg-[#73BF43] text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300 transform hover:scale-105">
+            <!-- Buttons for Localized Content, each in its own grey block -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                <div class="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-between">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Localized Advocacy</h3>
+                    <button id="getAdvocacyPointsLocalBtn" class="bg-[#73BF43] text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300 transform hover:scale-105 mb-4">
                         Get Local Advocacy Points ✨
                     </button>
-                    <button id="generateSocialPostLocalBtn" class="bg-[#A23F97] text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300 transform hover:scale-105">
+                     <div id="localizedAdvocacyLoading" class="hidden flex justify-center items-center mb-4">
+                        <div class="loading-spinner"></div>
+                        <span class="ml-3 text-gray-500">Generating...</span>
+                    </div>
+                    <div id="localizedAdvocacyOutput" class="text-base text-gray-700 w-full min-h-[100px] hidden">
+                        <ul class="list-disc list-inside space-y-2"></ul>
+                    </div>
+                    <p id="localizedAdvocacyError" class="text-red-500 mt-2 hidden text-center"></p>
+                </div>
+
+                <div class="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-between">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Social Media Ready Post</h3>
+                    <button id="generateSocialPostLocalBtn" class="bg-[#A23F97] text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300 transform hover:scale-105 mb-4">
                         Generate Social Post ✨
                     </button>
+                    <div id="localizedSocialPostLoading" class="hidden flex justify-center items-center mb-4">
+                        <div class="loading-spinner"></div>
+                        <span class="ml-3 text-gray-500">Generating...</span>
+                    </div>
+                    <div id="localizedSocialPostOutput" class="text-gray-700 w-full min-h-[100px] hidden flex flex-col items-center justify-center">
+                        <div id="sloganVisualOutput" class="w-full max-w-xs md:max-w-sm lg:max-w-md aspect-ratio-3-4 bg-[#00A9E0] rounded-lg shadow-md mb-4 overflow-hidden">
+                            <div class="aspect-ratio-3-4-content">
+                                <p class="text-white text-xl md:text-2xl lg:text-3xl font-black leading-tight p-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">Slogan Goes Here</p>
+                            </div>
+                        </div>
+                        <p id="socialMediaTextOutput" class="text-base break-words w-full text-left"></p>
+                    </div>
+                    <p id="localizedSocialPostError" class="text-red-500 mt-2 hidden text-center"></p>
                 </div>
-
-                <div id="localizedOutputLoading" class="hidden flex justify-center items-center mt-4">
-                    <div class="loading-spinner"></div>
-                    <span class="ml-3 text-gray-500">Generating localized content...</span>
-                </div>
-                
-                <div id="localizedAdvocacyOutput" class="bg-gray-100 p-6 rounded-lg shadow-inner text-gray-700 mt-6 min-h-[100px] hidden">
-                    <h4 class="text-xl font-bold text-gray-800 mb-2">Advocacy Points:</h4>
-                    <ul class="list-disc list-inside space-y-2"></ul>
-                </div>
-                <p id="localizedAdvocacyError" class="text-red-500 mt-2 hidden text-center"></p>
-
-                <div id="localizedSocialPostOutput" class="bg-gray-100 p-6 rounded-lg shadow-inner text-gray-700 mt-6 min-h-[100px] hidden">
-                    <h4 class="text-xl font-bold text-gray-800 mb-2">Social Media Post:</h4>
-                    <p class="text-base break-words text-left"></p>
-                </div>
-                <p id="localizedSocialPostError" class="text-red-500 mt-2 hidden text-center"></p>
-
             </div>
         </section>
 
@@ -457,11 +451,10 @@
             errorElement.classList.add('hidden'); // Hide any previous error
             loadingElement.classList.remove('hidden'); // Show loading spinner
 
-            if (isStructured) {
-                outputElement.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
-                outputElement.classList.add('list-disc', 'list-inside', 'space-y-2');
-            } else {
+            // Reset specific styling for non-structured content before generation
+            if (!isStructured) {
                 outputElement.classList.remove('list-disc', 'list-inside', 'space-y-2');
+                // Ensure centering for initial message/loading, removed if content is generated
                 outputElement.classList.add('italic', 'flex', 'items-center', 'justify-center');
             }
 
@@ -503,7 +496,7 @@
                         try {
                             const parsedJson = JSON.parse(text);
                             if (Array.isArray(parsedJson) && parsedJson.length > 0) {
-                                outputElement.classList.remove('flex', 'items-center', 'justify-center');
+                                outputElement.classList.remove('flex', 'items-center', 'justify-center'); // Remove centering for list items
                                 parsedJson.forEach(item => {
                                     const li = document.createElement('li');
                                     li.textContent = item;
@@ -519,12 +512,12 @@
                         }
                     } else {
                         outputElement.textContent = text;
-                        // For non-structured output elements, always show it.
                         outputElement.classList.remove('hidden');
-                        if (outputElement.id === 'countryBriefingOutput' || outputElement.id === 'localizedSocialPostOutput' || outputElement.querySelector('ul') === null) {
+                        // Specific styling for text outputs that are usually multi-line
+                        if (outputElement.id === 'countryBriefingOutput' || outputElement.id === 'socialMediaTextOutput') {
                             outputElement.style.textAlign = 'left';
                             outputElement.classList.remove('italic', 'flex', 'items-center', 'justify-center');
-                        } else {
+                        } else { // Default for single-line slogans or initial messages
                              outputElement.style.textAlign = 'center';
                              outputElement.classList.add('italic', 'flex', 'items-center', 'justify-center');
                         }
@@ -545,28 +538,6 @@
             }
         }
 
-
-        // Slogan generation
-        const generateSloganBtn = document.getElementById('generateSloganBtn');
-        const sloganOutput = document.getElementById('sloganOutput');
-        const sloganError = document.getElementById('sloganError');
-        const sloganLoading = document.getElementById('sloganLoading');
-
-        generateSloganBtn.addEventListener('click', () => {
-            const prompt = "Generate only one concise and impactful campaign slogan for a campaign called 'Women for Water' that focuses on empowering women to improve water, sanitation, and hygiene in healthcare facilities. The slogan should be suitable for an awareness campaign.";
-            callGeminiAPI(prompt, sloganOutput, sloganError, sloganLoading, false);
-        });
-
-        // Main Advocacy points generation (retained for general advocacy if needed)
-        const generateAdvocacyBtn = document.getElementById('generateAdvocacyBtn');
-        const advocacyOutput = document.getElementById('advocacyOutput');
-        const advocacyError = document.getElementById('advocacyError');
-        const advocacyLoading = document.getElementById('advocacyLoading');
-
-        generateAdvocacyBtn.addEventListener('click', () => {
-            const prompt = "Generate 3 concise advocacy message points for a campaign focused on improving water, sanitation, and hygiene (WASH) in maternal healthcare facilities. Each point should highlight a different aspect: human rights, economic impact, and community empowerment. Respond as a JSON array of strings.";
-            callGeminiAPI(prompt, advocacyOutput, advocacyError, advocacyLoading, true);
-        });
 
         // Country Briefing generation
         const countrySelect = document.getElementById('countrySelect');
@@ -595,7 +566,7 @@
         const localizedAdvocacyOutput = document.querySelector('#localizedAdvocacyOutput ul'); // Select the UL inside the div
         const localizedAdvocacyOutputDiv = document.getElementById('localizedAdvocacyOutput'); // The parent div to show/hide
         const localizedAdvocacyError = document.getElementById('localizedAdvocacyError');
-        const localizedOutputLoading = document.getElementById('localizedOutputLoading'); // Centralized loading for local buttons
+        const localizedAdvocacyLoading = document.getElementById('localizedAdvocacyLoading'); // Dedicated loading for this button
 
         getAdvocacyPointsLocalBtn.addEventListener('click', () => {
             const selectedCountry = countrySelect.value.trim();
@@ -607,29 +578,62 @@
             }
             localizedAdvocacyOutputDiv.classList.remove('hidden'); // Show output div before loading
             const prompt = `Generate 3 concise advocacy points related to improving Water, Sanitation, and Hygiene (WASH) in maternal healthcare facilities for ${selectedCountry}. Each point should be simple, accessible, and grounded in a verifiable fact or common challenge for that region. Respond as a JSON array of strings.`;
-            callGeminiAPI(prompt, localizedAdvocacyOutput, localizedAdvocacyError, localizedOutputLoading, true);
+            callGeminiAPI(prompt, localizedAdvocacyOutput, localizedAdvocacyError, localizedAdvocacyLoading, true);
         });
 
         // Localized Social Media Post generation
         const generateSocialPostLocalBtn = document.getElementById('generateSocialPostLocalBtn');
-        const localizedSocialPostOutput = document.querySelector('#localizedSocialPostOutput p'); // Select the P inside the div
-        const localizedSocialPostOutputDiv = document.getElementById('localizedSocialPostOutput'); // The parent div to show/hide
+        const localizedSocialPostOutputContainer = document.getElementById('localizedSocialPostOutput'); // The main container div
+        const socialMediaTextOutput = document.getElementById('socialMediaTextOutput'); // The paragraph for text post
+        const sloganVisualTextOutput = document.querySelector('#sloganVisualOutput p'); // The paragraph inside the slogan visual
         const localizedSocialPostError = document.getElementById('localizedSocialPostError');
-        // localizedOutputLoading is reused for this as well
+        const localizedSocialPostLoading = document.getElementById('localizedSocialPostLoading'); // Dedicated loading for this button
 
-        generateSocialPostLocalBtn.addEventListener('click', () => {
+        generateSocialPostLocalBtn.addEventListener('click', async () => {
             const selectedCountry = countrySelect.value.trim();
-            const currentSlogan = sloganOutput.textContent === 'Click the button to generate a slogan.' ? 'Water for All, Dignity in Birth.' : sloganOutput.textContent;
-
             if (!selectedCountry) {
                 localizedSocialPostError.textContent = 'Please select a country first to generate a social media post.';
                 localizedSocialPostError.classList.remove('hidden');
-                localizedSocialPostOutputDiv.classList.add('hidden'); // Hide the output div
+                localizedSocialPostOutputContainer.classList.add('hidden');
                 return;
             }
-            localizedSocialPostOutputDiv.classList.remove('hidden'); // Show output div before loading
-            const prompt = `Generate a social media post (less than 240 characters), in simple and accessible language, for the 'Women for Water' campaign targeting ${selectedCountry}. It must include the hashtag #WomenForWater and focus on a policy-related call to action for WASH in maternal healthcare in that country. Incorporate this slogan: "${currentSlogan}".`;
-            callGeminiAPI(prompt, localizedSocialPostOutput, localizedSocialPostError, localizedOutputLoading, false);
+
+            localizedSocialPostOutputContainer.classList.remove('hidden');
+            socialMediaTextOutput.textContent = '';
+            sloganVisualTextOutput.textContent = 'Generating Slogan...'; // Show loading in slogan visual
+            localizedSocialPostError.classList.add('hidden');
+            localizedSocialPostLoading.classList.remove('hidden');
+
+            let currentSlogan = ''; // Initialize slogan here
+            const sloganPrompt = "Generate only one concise and impactful campaign slogan for 'Women for Water' focused on maternal WASH.";
+            try {
+                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg"; // Re-use API key
+                const sloganResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: sloganPrompt }] }] })
+                });
+                const sloganResult = await sloganResponse.json();
+                if (sloganResult.candidates && sloganResult.candidates.length > 0 && sloganResult.candidates[0].content) {
+                    currentSlogan = sloganResult.candidates[0].content.parts[0].text;
+                } else {
+                    currentSlogan = 'Water for All, Dignity in Birth.'; // Fallback slogan
+                }
+            } catch (err) {
+                currentSlogan = 'Water for All, Dignity in Birth.'; // Fallback slogan
+            }
+            sloganVisualTextOutput.textContent = currentSlogan; // Set slogan on the visual after generation
+
+            try {
+                const socialTextPrompt = `Generate a social media post (less than 240 characters), in simple and accessible language, for the 'Women for Water' campaign targeting ${selectedCountry}. It must include the hashtag #WomenForWater and focus on a policy-related call to action for WASH in maternal healthcare in that country. Incorporate this slogan: "${currentSlogan}".`;
+                await callGeminiAPI(socialTextPrompt, socialMediaTextOutput, localizedSocialPostError, localizedSocialPostLoading, false);
+                
+            } catch (error) {
+                localizedSocialPostError.textContent = `Failed to generate social media content: ${error.message}.`;
+                localizedSocialPostError.classList.remove('hidden');
+            } finally {
+                localizedSocialPostLoading.classList.add('hidden');
+            }
         });
 
     </script>

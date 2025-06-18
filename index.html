@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
@@ -29,6 +29,19 @@
         }
         .kpi-card h3 {
             line-height: 1.2;
+        }
+        /* Spinner styles for loading states */
+        .loading-spinner {
+            border: 4px solid rgba(255,255,255,.3);
+            border-top: 4px solid #F7A823;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -175,16 +188,26 @@
                     <button id="generateSloganBtn" class="bg-[#F7A823] text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-yellow-400 transition-colors duration-300 transform hover:scale-105 mb-4">
                         Generate Slogan ✨
                     </button>
+                    <div id="sloganLoading" class="hidden flex justify-center items-center mb-4">
+                        <div class="loading-spinner"></div>
+                        <span class="ml-3 text-gray-500">Generating...</span>
+                    </div>
                     <p id="sloganOutput" class="text-xl italic text-center text-gray-700 min-h-[50px] flex items-center justify-center">Click the button to generate a slogan.</p>
+                    <p id="sloganError" class="text-red-500 mt-2 hidden text-center"></p>
                 </div>
                 <div class="bg-gray-100 rounded-lg p-6 flex flex-col items-center justify-between">
                     <h3 class="text-2xl font-bold text-gray-800 mb-4">Advocacy Points</h3>
                     <button id="generateAdvocacyBtn" class="bg-[#73BF43] text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors duration-300 transform hover:scale-105 mb-4">
                         Get Advocacy Points ✨
                     </button>
+                    <div id="advocacyLoading" class="hidden flex justify-center items-center mb-4">
+                        <div class="loading-spinner"></div>
+                        <span class="ml-3 text-gray-500">Generating...</span>
+                    </div>
                     <ul id="advocacyOutput" class="text-base text-gray-700 list-disc list-inside space-y-2 min-h-[100px] flex flex-col justify-center">
                         <li class="text-center">Click the button to get advocacy points.</li>
                     </ul>
+                    <p id="advocacyError" class="text-red-500 mt-2 hidden text-center"></p>
                 </div>
             </div>
         </section>
@@ -362,21 +385,18 @@
         });
 
         // Gemini API Integration
-        async function callGeminiAPI(prompt, isStructured = false) {
-            const sloganOutput = document.getElementById('sloganOutput');
-            const advocacyOutput = document.getElementById('advocacyOutput');
+        async function callGeminiAPI(prompt, outputElement, errorElement, loadingElement, isStructured = false) {
+            outputElement.innerHTML = ''; // Clear previous content
+            errorElement.classList.add('hidden'); // Hide any previous error
+            loadingElement.classList.remove('hidden'); // Show loading spinner
 
-            // Determine which output element to use for loading/error messages
-            const currentOutputElement = isStructured ? advocacyOutput : sloganOutput;
-
-            currentOutputElement.innerHTML = `<span class="text-gray-500">Generating...</span>`;
             if (isStructured) {
-                currentOutputElement.classList.remove('list-disc', 'list-inside', 'space-y-2');
-                currentOutputElement.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
+                outputElement.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
+                outputElement.classList.add('list-disc', 'list-inside', 'space-y-2');
             } else {
-                currentOutputElement.classList.remove('italic');
+                outputElement.classList.remove('list-disc', 'list-inside', 'space-y-2');
+                outputElement.classList.add('italic');
             }
-
 
             try {
                 let chatHistory = [];
@@ -393,7 +413,8 @@
                     };
                 }
 
-                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg";
+                // IMPORTANT: Replace "YOUR_GEMINI_API_KEY" with your actual Gemini API key
+                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg"; // <--- INSERT YOUR GEMINI API KEY HERE FOR DEPLOYMENT
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -412,43 +433,56 @@
                     if (isStructured) {
                         try {
                             const parsedJson = JSON.parse(text);
-                            currentOutputElement.innerHTML = '';
-                            if (parsedJson.length > 0) {
-                                currentOutputElement.classList.add('list-disc', 'list-inside', 'space-y-2');
-                                currentOutputElement.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
+                            if (Array.isArray(parsedJson) && parsedJson.length > 0) {
                                 parsedJson.forEach(item => {
                                     const li = document.createElement('li');
                                     li.textContent = item;
-                                    currentOutputElement.appendChild(li);
+                                    outputElement.appendChild(li);
                                 });
                             } else {
-                                currentOutputElement.innerHTML = `<span class="text-gray-500">No advocacy points generated.</span>`;
+                                outputElement.innerHTML = `<li class="text-center text-gray-500">No content generated.</li>`;
                             }
                         } catch (e) {
                             console.error("Failed to parse JSON:", e);
-                            currentOutputElement.innerHTML = `<span class="text-red-500">Error: Could not parse advocacy points.</span>`;
+                            errorElement.textContent = `Error: Could not parse response.`;
+                            errorElement.classList.remove('hidden');
                         }
                     } else {
-                        currentOutputElement.innerHTML = `<span class="text-xl italic text-center text-gray-700">${text}</span>`;
-                        currentOutputElement.classList.add('italic');
+                        outputElement.textContent = text;
                     }
                 } else {
-                    currentOutputElement.innerHTML = `<span class="text-red-500">Error: No content generated.</span>`;
+                    errorElement.textContent = `Error: No content generated.`;
+                    errorElement.classList.remove('hidden');
                 }
             } catch (error) {
                 console.error("Gemini API call failed:", error);
-                currentOutputElement.innerHTML = `<span class="text-red-500">Error: Failed to connect to AI.</span>`;
+                errorElement.textContent = `Error: Failed to connect to AI. Please check your API key and network.`;
+                errorElement.classList.remove('hidden');
+            } finally {
+                loadingElement.classList.add('hidden'); // Hide loading spinner
             }
         }
 
-        document.getElementById('generateSloganBtn').addEventListener('click', () => {
+        // Slogan generation
+        const generateSloganBtn = document.getElementById('generateSloganBtn');
+        const sloganOutput = document.getElementById('sloganOutput');
+        const sloganError = document.getElementById('sloganError');
+        const sloganLoading = document.getElementById('sloganLoading');
+
+        generateSloganBtn.addEventListener('click', () => {
             const prompt = "Generate a short, inspiring slogan for a campaign called 'Women for Water' that focuses on empowering women to improve water, sanitation, and hygiene in healthcare facilities. The slogan should be concise and impactful, suitable for an awareness campaign.";
-            callGeminiAPI(prompt, false);
+            callGeminiAPI(prompt, sloganOutput, sloganError, sloganLoading, false);
         });
 
-        document.getElementById('generateAdvocacyBtn').addEventListener('click', () => {
+        // Advocacy points generation
+        const generateAdvocacyBtn = document.getElementById('generateAdvocacyBtn');
+        const advocacyOutput = document.getElementById('advocacyOutput');
+        const advocacyError = document.getElementById('advocacyError');
+        const advocacyLoading = document.getElementById('advocacyLoading');
+
+        generateAdvocacyBtn.addEventListener('click', () => {
             const prompt = "Generate 3 concise advocacy message points for a campaign focused on improving water, sanitation, and hygiene (WASH) in maternal healthcare facilities. Each point should highlight a different aspect: human rights, economic impact, and community empowerment. Respond as a JSON array of strings.";
-            callGeminiAPI(prompt, true);
+            callGeminiAPI(prompt, advocacyOutput, advocacyError, advocacyLoading, true);
         });
 
     </script>

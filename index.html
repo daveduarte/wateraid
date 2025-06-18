@@ -230,6 +230,35 @@
                 </div>
                 <p id="countryInfoError" class="text-red-500 mt-2 hidden text-center"></p>
             </div>
+
+            <!-- New section: Generate Social Media Post -->
+            <div class="mt-12 pt-8 border-t border-gray-200">
+                <div class="text-center mb-6">
+                    <h3 class="text-3xl md:text-4xl font-bold text-gray-900">Generate Social Media Post</h3>
+                    <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Create a personalized social media post, including an image and localized policy call to action for the entered country.</p>
+                </div>
+                <div class="flex flex-col items-center justify-center gap-4 mb-6">
+                    <p class="text-gray-700">Using Country: <span id="selectedCountryDisplay" class="font-semibold italic">N/A</span></p>
+                    <p class="text-gray-700">Using Slogan: "<span id="selectedSloganDisplay" class="font-semibold italic">N/A</span>"</p>
+                    <button id="generateSocialPostBtn" class="bg-[#A23F97] text-white font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors duration-300 transform hover:scale-105">
+                        Generate Social Post ✨
+                    </button>
+                </div>
+
+                <div id="socialPostLoading" class="hidden flex justify-center items-center mb-4">
+                    <div class="loading-spinner"></div>
+                    <span class="ml-3 text-gray-500">Generating social media content... This may take a moment.</span>
+                </div>
+
+                <div id="socialPostOutput" class="bg-gray-100 p-6 rounded-lg shadow-inner text-gray-700 min-h-[250px] flex flex-col items-center justify-center text-center space-y-4 hidden">
+                    <h4 class="text-xl font-bold text-gray-800 mb-2">Your Social Media Post:</h4>
+                    <p id="socialMediaTextOutput" class="text-base text-gray-700 break-words w-full text-left"></p>
+                    <img id="socialMediaImageOutput" src="" alt="Generated image for social media post" class="max-w-full h-auto rounded-lg shadow-md my-4 hidden">
+                    <h5 class="text-lg font-bold text-gray-800 mt-4">Local Policy Call to Action:</h5>
+                    <p id="policyCallToActionOutput" class="text-base text-gray-700 break-words w-full text-left"></p>
+                </div>
+                <p id="socialPostError" class="text-red-500 mt-2 hidden text-center"></p>
+            </div>
         </section>
 
         <section id="call-to-action" class="bg-gray-800 text-white rounded-2xl p-8 md:p-12 text-center">
@@ -404,7 +433,7 @@
             }
         });
 
-        // Gemini API Integration - Centralized function
+        // Gemini API Integration - Centralized function for text generation
         async function callGeminiAPI(prompt, outputElement, errorElement, loadingElement, isStructured = false) {
             outputElement.innerHTML = ''; // Clear previous content
             errorElement.classList.add('hidden'); // Hide any previous error
@@ -414,7 +443,6 @@
                 outputElement.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
                 outputElement.classList.add('list-disc', 'list-inside', 'space-y-2');
             } else {
-                // If it's not structured (like slogan or country info), ensure it's centered if empty
                 outputElement.classList.remove('list-disc', 'list-inside', 'space-y-2');
                 outputElement.classList.add('italic', 'flex', 'items-center', 'justify-center');
             }
@@ -436,7 +464,7 @@
 
                 // IMPORTANT: PASTE YOUR ACTUAL GEMINI API KEY HERE.
                 // Example: const apiKey = "AIzaSy_YOUR_ACTUAL_API_KEY_GOES_HERE";
-                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg"; // <-- Update this line
+                const apiKey = "AIzaSyCP3pAGnq7WtIPpoW44izVOE4U75LKNbwg";
                 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
@@ -457,7 +485,7 @@
                         try {
                             const parsedJson = JSON.parse(text);
                             if (Array.isArray(parsedJson) && parsedJson.length > 0) {
-                                outputElement.classList.remove('flex', 'items-center', 'justify-center'); // Remove centering for list items
+                                outputElement.classList.remove('flex', 'items-center', 'justify-center');
                                 parsedJson.forEach(item => {
                                     const li = document.createElement('li');
                                     li.textContent = item;
@@ -472,10 +500,9 @@
                         }
                     } else {
                         outputElement.textContent = text;
-                        if (outputElement.id === 'countryInfoOutput') { // Special handling for country info for formatting
-                            outputElement.classList.remove('italic'); // Remove italic if content is present
-                            outputElement.classList.remove('flex', 'items-center', 'justify-center'); // Remove centering
-                            outputElement.style.textAlign = 'left'; // Align text left for multi-paragraph info
+                        if (outputElement.id === 'countryInfoOutput' || outputElement.id === 'socialMediaTextOutput' || outputElement.id === 'policyCallToActionOutput') {
+                            outputElement.classList.remove('italic', 'flex', 'items-center', 'justify-center');
+                            outputElement.style.textAlign = 'left';
                         }
                     }
                 } else {
@@ -493,6 +520,47 @@
                 loadingElement.classList.add('hidden');
             }
         }
+
+        // Imagen API Integration for image generation
+        async function generateImage(prompt, imageElement, errorElement, loadingElement) {
+            imageElement.classList.add('hidden'); // Hide image initially
+            imageElement.src = ''; // Clear previous image
+            errorElement.classList.add('hidden');
+            loadingElement.classList.remove('hidden');
+
+            try {
+                const payload = { instances: { prompt: prompt }, parameters: { "sampleCount": 1 } };
+                const apiKey = "PASTE_YOUR_ACTUAL_GEMINI_API_KEY_HERE_CAREFULLY"; // Use the same API key for Imagen
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const imageUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    imageElement.src = imageUrl;
+                    imageElement.classList.remove('hidden');
+                } else {
+                    if (result.error && result.error.message) {
+                        errorElement.textContent = `Image API Error: ${result.error.message}`;
+                    } else {
+                        errorElement.textContent = `Error generating image: No content or unexpected response.`;
+                    }
+                    errorElement.classList.remove('hidden');
+                }
+            } catch (error) {
+                errorElement.textContent = `Image Generation Failed: Network issue or API problem.`;
+                errorElement.classList.remove('hidden');
+            } finally {
+                loadingElement.classList.add('hidden');
+            }
+        }
+
 
         // Slogan generation
         const generateSloganBtn = document.getElementById('generateSloganBtn');
@@ -535,6 +603,59 @@
             }
             const prompt = `Provide a concise summary (around 150-200 words) of the main Water, Sanitation, and Hygiene (WASH) issues in maternal healthcare facilities in ${country}. Focus on key challenges and their impact on women giving birth.`;
             callGeminiAPI(prompt, countryInfoOutput, countryInfoError, countryInfoLoading, false);
+            document.getElementById('selectedCountryDisplay').textContent = country;
+            document.getElementById('selectedSloganDisplay').textContent = sloganOutput.textContent === 'Click the button to generate a slogan.' ? 'N/A (Generate one above!)' : sloganOutput.textContent;
+        });
+
+        // Social Media Post generation
+        const generateSocialPostBtn = document.getElementById('generateSocialPostBtn');
+        const socialPostOutputDiv = document.getElementById('socialPostOutput');
+        const socialMediaTextOutput = document.getElementById('socialMediaTextOutput');
+        const socialMediaImageOutput = document.getElementById('socialMediaImageOutput');
+        const policyCallToActionOutput = document.getElementById('policyCallToActionOutput');
+        const socialPostError = document.getElementById('socialPostError');
+        const socialPostLoading = document.getElementById('socialPostLoading');
+
+        generateSocialPostBtn.addEventListener('click', async () => {
+            const country = countryInput.value.trim();
+            const currentSlogan = sloganOutput.textContent === 'Click the button to generate a slogan.' ? 'Water for All, Dignity in Birth.' : sloganOutput.textContent;
+
+            document.getElementById('selectedCountryDisplay').textContent = country || 'N/A';
+            document.getElementById('selectedSloganDisplay').textContent = currentSlogan;
+
+
+            if (!country) {
+                socialPostError.textContent = 'Please enter a country name in the "WASH Insights by Country" section above first.';
+                socialPostError.classList.remove('hidden');
+                socialPostOutputDiv.classList.add('hidden');
+                return;
+            }
+
+            socialPostOutputDiv.classList.add('hidden');
+            socialPostError.classList.add('hidden');
+            socialPostLoading.classList.remove('hidden');
+            socialMediaImageOutput.classList.add('hidden'); // Ensure image is hidden while generating
+
+            try {
+                // 1. Generate Social Media Text
+                const socialTextPrompt = `Craft a compelling short social media post (e.g., for Twitter/X or Instagram caption) for the 'Women for Water' campaign. Incorporate the slogan: "${currentSlogan}". Focus on WASH issues in maternal healthcare facilities in ${country}. Encourage engagement and awareness.`;
+                await callGeminiAPI(socialTextPrompt, socialMediaTextOutput, socialPostError, socialPostLoading, false);
+
+                // 2. Generate Image
+                const imagePrompt = `A high-quality, realistic photograph of a clean, well-lit handwashing station or water tap inside a modern, sterile maternity ward in ${country}. Emphasize hygiene and safety. No people, focus on the facility and equipment.`;
+                await generateImage(imagePrompt, socialMediaImageOutput, socialPostError, socialPostLoading); // Pass the same loading/error elements
+
+                // 3. Generate Localized Policy Call to Action
+                const policyPrompt = `For ${country}, generate one specific, actionable policy recommendation (e.g., related to government funding, infrastructure, training, or data collection) that local citizens can advocate for to improve Water, Sanitation, and Hygiene (WASH) in maternal healthcare facilities. Keep it concise, around 1-2 sentences.`;
+                await callGeminiAPI(policyPrompt, policyCallToActionOutput, socialPostError, socialPostLoading, false);
+                
+                socialPostOutputDiv.classList.remove('hidden'); // Show the output div once all parts are attempted
+            } catch (error) {
+                socialPostError.textContent = `Failed to generate all social media content: ${error.message}. Please try again.`;
+                socialPostError.classList.remove('hidden');
+            } finally {
+                socialPostLoading.classList.add('hidden');
+            }
         });
 
     </script>

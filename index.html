@@ -122,10 +122,10 @@
                         </div>
                         <div class="flex items-center">
                             <div class="flex-shrink-0 bg-[#73BF43] h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-xl">3</div>
-                            <p class="ml-4">
+                            <div class="ml-4">
                                 <h4 class="text-lg font-semibold">Community Empowerment</h4>
                                 <p class="text-gray-600">Ensuring local communities, especially women, lead the design and management of WASH solutions.</p>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -209,13 +209,34 @@
                     <p id="advocacyError" class="text-red-500 mt-2 hidden text-center"></p>
                 </div>
             </div>
+            
+            <div class="mt-12 pt-8 border-t border-gray-200">
+                <div class="text-center mb-6">
+                    <h3 class="text-3xl md:text-4xl font-bold text-gray-900">WASH Insights by Country</h3>
+                    <p class="mt-2 text-gray-600 max-w-3xl mx-auto">Enter a country name to learn about its specific WASH challenges in maternal healthcare facilities.</p>
+                </div>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+                    <input type="text" id="countryInput" placeholder="e.g., Nigeria, India, Ethiopia" class="flex-grow md:w-1/2 p-3 rounded-lg border border-gray-300 bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00A9E0]">
+                    <button id="getCountryInfoBtn" class="bg-[#00A9E0] text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-300 transform hover:scale-105">
+                        Get Country Info ✨
+                    </button>
+                </div>
+                <div id="countryInfoLoading" class="hidden flex justify-center items-center mb-4">
+                    <div class="loading-spinner"></div>
+                    <span class="ml-3 text-gray-500">Fetching country insights...</span>
+                </div>
+                <div id="countryInfoOutput" class="bg-gray-100 p-6 rounded-lg shadow-inner text-gray-700 min-h-[150px] flex items-center justify-center text-center">
+                    Enter a country above to get tailored insights.
+                </div>
+                <p id="countryInfoError" class="text-red-500 mt-2 hidden text-center"></p>
+            </div>
         </section>
 
         <section id="call-to-action" class="bg-gray-800 text-white rounded-2xl p-8 md:p-12 text-center">
              <h2 class="text-3xl md:text-4xl font-bold">The Path Forward: A Campaign for Change</h2>
              <p class="mt-3 text-gray-300 max-w-3xl mx-auto">The 'Women for Water' campaign will succeed by amplifying personal stories, making the economic case, and advocating for investment and better governance.</p>
              <div class="mt-8">
-                <a href="#" class="inline-block bg-[#F7A823] text-gray-900 font-bold text-lg px-8 py-4 rounded-lg hover:bg-yellow-400 transition-colors duration-300 transform hover:scale-105">Join the Movement</a>
+                <a href="take-action.html" class="inline-block bg-[#F7A823] text-gray-900 font-bold text-lg px-8 py-4 rounded-lg hover:bg-yellow-400 transition-colors duration-300 transform hover:scale-105">Join the Movement</a>
              </div>
         </section>
 
@@ -383,18 +404,19 @@
             }
         });
 
-        // Gemini API Integration
+        // Gemini API Integration - Centralized function
         async function callGeminiAPI(prompt, outputElement, errorElement, loadingElement, isStructured = false) {
-            outputElement.innerHTML = '';
-            errorElement.classList.add('hidden');
-            loadingElement.classList.remove('hidden');
+            outputElement.innerHTML = ''; // Clear previous content
+            errorElement.classList.add('hidden'); // Hide any previous error
+            loadingElement.classList.remove('hidden'); // Show loading spinner
 
             if (isStructured) {
                 outputElement.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
                 outputElement.classList.add('list-disc', 'list-inside', 'space-y-2');
             } else {
+                // If it's not structured (like slogan or country info), ensure it's centered if empty
                 outputElement.classList.remove('list-disc', 'list-inside', 'space-y-2');
-                outputElement.classList.add('italic');
+                outputElement.classList.add('italic', 'flex', 'items-center', 'justify-center');
             }
 
             try {
@@ -435,6 +457,7 @@
                         try {
                             const parsedJson = JSON.parse(text);
                             if (Array.isArray(parsedJson) && parsedJson.length > 0) {
+                                outputElement.classList.remove('flex', 'items-center', 'justify-center'); // Remove centering for list items
                                 parsedJson.forEach(item => {
                                     const li = document.createElement('li');
                                     li.textContent = item;
@@ -444,12 +467,16 @@
                                 outputElement.innerHTML = `<li class="text-center text-gray-500">No content generated.</li>`;
                             }
                         } catch (e) {
-                            console.error("Failed to parse JSON:", e);
                             errorElement.textContent = `Error: Could not parse response.`;
                             errorElement.classList.remove('hidden');
                         }
                     } else {
                         outputElement.textContent = text;
+                        if (outputElement.id === 'countryInfoOutput') { // Special handling for country info for formatting
+                            outputElement.classList.remove('italic'); // Remove italic if content is present
+                            outputElement.classList.remove('flex', 'items-center', 'justify-center'); // Remove centering
+                            outputElement.style.textAlign = 'left'; // Align text left for multi-paragraph info
+                        }
                     }
                 } else {
                     if (result.error && result.error.message) {
@@ -460,7 +487,6 @@
                     errorElement.classList.remove('hidden');
                 }
             } catch (error) {
-                console.error("Gemini API call failed:", error);
                 errorElement.textContent = `Error: Failed to connect to AI. Please check your API key and network.`;
                 errorElement.classList.remove('hidden');
             } finally {
@@ -475,7 +501,6 @@
         const sloganLoading = document.getElementById('sloganLoading');
 
         generateSloganBtn.addEventListener('click', () => {
-            // Changed prompt to explicitly ask for ONLY ONE slogan
             const prompt = "Generate only one concise and impactful campaign slogan for a campaign called 'Women for Water' that focuses on empowering women to improve water, sanitation, and hygiene in healthcare facilities. The slogan should be suitable for an awareness campaign.";
             callGeminiAPI(prompt, sloganOutput, sloganError, sloganLoading, false);
         });
@@ -489,6 +514,27 @@
         generateAdvocacyBtn.addEventListener('click', () => {
             const prompt = "Generate 3 concise advocacy message points for a campaign focused on improving water, sanitation, and hygiene (WASH) in maternal healthcare facilities. Each point should highlight a different aspect: human rights, economic impact, and community empowerment. Respond as a JSON array of strings.";
             callGeminiAPI(prompt, advocacyOutput, advocacyError, advocacyLoading, true);
+        });
+
+        // Country info generation
+        const countryInput = document.getElementById('countryInput');
+        const getCountryInfoBtn = document.getElementById('getCountryInfoBtn');
+        const countryInfoOutput = document.getElementById('countryInfoOutput');
+        const countryInfoError = document.getElementById('countryInfoError');
+        const countryInfoLoading = document.getElementById('countryInfoLoading');
+
+        getCountryInfoBtn.addEventListener('click', () => {
+            const country = countryInput.value.trim();
+            if (!country) {
+                countryInfoError.textContent = 'Please enter a country name.';
+                countryInfoError.classList.remove('hidden');
+                countryInfoOutput.textContent = 'Enter a country above to get tailored insights.';
+                countryInfoOutput.style.textAlign = 'center';
+                countryInfoOutput.classList.add('italic', 'flex', 'items-center', 'justify-center');
+                return;
+            }
+            const prompt = `Provide a concise summary (around 150-200 words) of the main Water, Sanitation, and Hygiene (WASH) issues in maternal healthcare facilities in ${country}. Focus on key challenges and their impact on women giving birth.`;
+            callGeminiAPI(prompt, countryInfoOutput, countryInfoError, countryInfoLoading, false);
         });
 
     </script>
